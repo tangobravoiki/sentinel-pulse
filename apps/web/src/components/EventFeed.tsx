@@ -6,23 +6,29 @@ import { AlertTriangle, Plane, Shield, Zap } from 'lucide-react';
 const categoryIcons: Record<string, React.ReactNode> = {
   conflict: <AlertTriangle className="w-4 h-4 text-red-400" />,
   aviation: <Plane className="w-4 h-4 text-yellow-400" />,
+  FLIGHT: <Plane className="w-4 h-4 text-yellow-400" />,
   cyber: <Shield className="w-4 h-4 text-blue-400" />,
+  CYBER: <Shield className="w-4 h-4 text-blue-400" />,
   disaster: <Zap className="w-4 h-4 text-orange-400" />,
 };
 
 const categoryColors: Record<string, string> = {
   conflict: 'border-red-500/30 bg-red-500/5',
   aviation: 'border-yellow-500/30 bg-yellow-500/5',
+  FLIGHT: 'border-yellow-500/30 bg-yellow-500/5',
   cyber: 'border-blue-500/30 bg-blue-500/5',
+  CYBER: 'border-blue-500/30 bg-blue-500/5',
   disaster: 'border-orange-500/30 bg-orange-500/5',
 };
 
 export default function EventFeed() {
-  const { events, selectedEvent, setSelectedEvent } = useAppStore();
+  const { events, selectedEventId, setSelectedEvent } = useAppStore();
 
-  const sorted = [...events].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  const sorted = [...events].sort((a, b) => {
+    const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return tb - ta;
+  });
 
   return (
     <div className="h-full flex flex-col">
@@ -36,11 +42,11 @@ export default function EventFeed() {
         {sorted.map((event) => (
           <button
             key={event.id}
-            onClick={() => setSelectedEvent(event)}
+            onClick={() => setSelectedEvent(event.id)}
             className={`w-full text-left p-3 rounded-lg border transition-all ${
               categoryColors[event.category] ?? 'border-white/10 bg-white/5'
             } ${
-              selectedEvent?.id === event.id
+              selectedEventId === event.id
                 ? 'ring-1 ring-white/30'
                 : 'hover:ring-1 hover:ring-white/20'
             }`}
@@ -56,15 +62,19 @@ export default function EventFeed() {
                   {event.title}
                 </p>
                 <p className="text-xs text-white/50 mt-0.5 line-clamp-2">
-                  {event.description}
+                  {event.description ?? event.summary}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-white/30">
-                    {new Date(event.timestamp).toLocaleTimeString()}
-                  </span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-white/60">
-                    {event.severity}
-                  </span>
+                  {event.timestamp && (
+                    <span className="text-xs text-white/30">
+                      {new Date(event.timestamp).toLocaleTimeString()}
+                    </span>
+                  )}
+                  {event.severity && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-white/60">
+                      {event.severity}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

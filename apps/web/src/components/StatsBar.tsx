@@ -14,7 +14,9 @@ export default function StatsBar() {
     {} as Record<string, number>
   );
 
-  const critical = events.filter((e) => e.severity === 'critical').length;
+  const critical = events.filter(
+    (e) => e.severity === 'critical' || e.riskScore > 75
+  ).length;
 
   return (
     <div className="flex items-center justify-between px-4 py-2 bg-gray-900/80 border-b border-white/10 text-xs text-white/70">
@@ -32,9 +34,9 @@ export default function StatsBar() {
       <div className="flex items-center gap-4">
         <Stat icon={<Activity className="w-3 h-3" />} label="Total" value={events.length} />
         <Stat icon={<AlertTriangle className="w-3 h-3 text-red-400" />} label="Critical" value={critical} color="text-red-400" />
-        <Stat icon={<Globe className="w-3 h-3 text-blue-400" />} label="Conflict" value={counts.conflict ?? 0} />
-        <Stat icon={<Globe className="w-3 h-3 text-yellow-400" />} label="Aviation" value={counts.aviation ?? 0} />
-        <Stat icon={<Globe className="w-3 h-3 text-purple-400" />} label="Cyber" value={counts.cyber ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-blue-400" />} label="Conflict" value={counts.conflict ?? counts.NEWS ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-yellow-400" />} label="Aviation" value={counts.aviation ?? counts.FLIGHT ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-purple-400" />} label="Cyber" value={counts.cyber ?? counts.CYBER ?? 0} />
       </div>
 
       <div className="text-white/30">

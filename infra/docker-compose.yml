@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - '4222:4222'
+      - '8222:8222'
+    command: '--http_port 8222'
+    healthcheck:
+      test: ['CMD', 'nats-server', '--help']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  api-gateway:
+    build:
+      context: ../packages/services/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - NATS_URL=nats://nats:4222
+      - PORT=8080
+    depends_on:
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ingestion-osint:
+    build:
+      context: ../packages/services/ingestion-osint
+      dockerfile: Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    name: sentinel-pulse-net

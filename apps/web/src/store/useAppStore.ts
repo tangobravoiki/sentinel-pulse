@@ -18,20 +18,16 @@ interface AppState {
   selectedCategory: string | null;
   selectedEventId: string | null;
   isConnected: boolean;
-  events: PulseEvent[];
   setCategory: (category: string | null) => void;
   setSelectedEvent: (id: string | null) => void;
   setConnected: (v: boolean) => void;
-  setEvents: (events: PulseEvent[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   selectedCategory: null,
   selectedEventId: null,
   isConnected: false,
-  events: [],
   setCategory: (category) => set({ selectedCategory: category }),
   setSelectedEvent: (id) => set({ selectedEventId: id }),
   setConnected: (v) => set({ isConnected: v }),
-  setEvents: (events) => set({ events }),
 }));

@@ -1,18 +1,17 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
+import { useLiveEvents } from '@/hooks/useLiveEvents';
 import { Activity, AlertTriangle, Globe, Wifi, WifiOff } from 'lucide-react';
 
 export default function StatsBar() {
-  const { events, isConnected } = useAppStore();
+  const { events } = useLiveEvents();
+  const isConnected = useAppStore((s) => s.isConnected);
 
-  const counts = events.reduce(
-    (acc, e) => {
-      acc[e.category] = (acc[e.category] ?? 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const counts = events.reduce((acc, e) => {
+    acc[e.category] = (acc[e.category] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const critical = events.filter(
     (e) => e.severity === 'critical' || e.riskScore > 75
@@ -30,27 +29,20 @@ export default function StatsBar() {
           {isConnected ? 'LIVE' : 'OFFLINE'}
         </span>
       </div>
-
       <div className="flex items-center gap-4">
         <Stat icon={<Activity className="w-3 h-3" />} label="Total" value={events.length} />
         <Stat icon={<AlertTriangle className="w-3 h-3 text-red-400" />} label="Critical" value={critical} color="text-red-400" />
-        <Stat icon={<Globe className="w-3 h-3 text-blue-400" />} label="Conflict" value={counts.conflict ?? counts.NEWS ?? 0} />
-        <Stat icon={<Globe className="w-3 h-3 text-yellow-400" />} label="Aviation" value={counts.aviation ?? counts.FLIGHT ?? 0} />
-        <Stat icon={<Globe className="w-3 h-3 text-purple-400" />} label="Cyber" value={counts.cyber ?? counts.CYBER ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-blue-400" />} label="News" value={counts.NEWS ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-yellow-400" />} label="Aviation" value={counts.FLIGHT ?? 0} />
+        <Stat icon={<Globe className="w-3 h-3 text-purple-400" />} label="Cyber" value={counts.CYBER ?? 0} />
       </div>
-
-      <div className="text-white/30">
-        SentinelPulse v0.1.0
-      </div>
+      <div className="text-white/30">SentinelPulse v0.1.0</div>
     </div>
   );
 }
 
 function Stat({
-  icon,
-  label,
-  value,
-  color = 'text-white/70',
+  icon, label, value, color = 'text-white/70',
 }: {
   icon: React.ReactNode;
   label: string;

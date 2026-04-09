@@ -4,7 +4,7 @@ import { useAppStore, PulseEvent } from '@/store/useAppStore';
 
 export type { PulseEvent };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = '/api/v1';
 
 export function useLiveEvents() {
   const selectedCategory = useAppStore((s) => s.selectedCategory);
@@ -16,9 +16,8 @@ export function useLiveEvents() {
   const { data: events = [] } = useQuery<PulseEvent[]>({
     queryKey,
     queryFn: async () => {
-      if (!API_URL) return [];
       try {
-        const url = `${API_URL}/v1/events${selectedCategory ? '?category=' + selectedCategory : ''}`;
+        const url = `${API_BASE}/events${selectedCategory ? '?category=' + selectedCategory : ''}`;
         const res = await fetch(url);
         if (!res.ok) return [];
         const d = await res.json();
@@ -27,29 +26,47 @@ export function useLiveEvents() {
         return [];
       }
     },
-    retry: false,
+    retry: 2,
     refetchInterval: 30_000,
     staleTime: 10_000,
   });
 
   const connectedRef = useRef(false);
   useEffect(() => {
-    if (!API_URL || connectedRef.current) return;
+    if (typeof window === 'undefined') return;
+    if (connectedRef.current) return;
     connectedRef.current = true;
 
-    const es = new EventSource(`${API_URL}/v1/stream`);
-    es.onopen = () => setConnected(true);
-    es.onerror = () => { setConnected(false); };
-    es.onmessage = (e) => {
-      try {
-        const event: PulseEvent = JSON.parse(e.data);
-        queryClient.setQueryData<PulseEvent[]>(queryKey, (old = []) =>
-          [event, ...old.filter((x) => x.id !== event.id)]
-        );
-      } catch { /* ignore */ }
+    let es: EventSource | null = null;
+
+    const connect = () => {
+      es = new EventSource(`${API_BASE}/stream`);
+
+      es.onopen = () => setConnected(true);
+
+      es.onerror = () => {
+        setConnected(false);
+        es?.close();
+        setTimeout(connect, 30_000);
+      };
+
+      es.onmessage = (e) => {
+        if (e.data.startsWith(':')) return;
+        try {
+          const event: PulseEvent = JSON.parse(e.data);
+          queryClient.setQueryData<PulseEvent[]>(queryKey, (old = []) =>
+            [event, ...old.filter((x) => x.id !== event.id)]
+          );
+        } catch { /* ignore */ }
+      };
     };
 
-    return () => { es.close(); connectedRef.current = false; };
+    connect();
+
+    return () => {
+      es?.close();
+      connectedRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

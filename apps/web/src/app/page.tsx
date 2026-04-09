@@ -1,21 +1,20 @@
 'use client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 import { useLiveEvents } from '@/hooks/useLiveEvents';
 import { useAppStore } from '@/store/useAppStore';
 import dynamic from 'next/dynamic';
 import { Globe, Radio, AlertTriangle, Activity } from 'lucide-react';
 
 const PulseMap = dynamic(() => import('@/components/PulseMap'), { ssr: false });
-const qc = new QueryClient();
 
 const categories = [
-  { id: null, label: 'All', icon: Globe },
-  { id: 'NEWS', label: 'News', icon: Radio },
-  { id: 'CYBER', label: 'Cyber', icon: AlertTriangle },
-  { id: 'FLIGHT', label: 'Aviation', icon: Activity },
+  { id: null,    label: 'All',      icon: Globe },
+  { id: 'NEWS',  label: 'News',     icon: Radio },
+  { id: 'CYBER', label: 'Cyber',    icon: AlertTriangle },
+  { id: 'FLIGHT',label: 'Aviation', icon: Activity },
 ];
 
-function Dashboard() {
+export default function Page() {
   const { events } = useLiveEvents();
   const { selectedCategory, setCategory, selectedEventId, setSelectedEvent } = useAppStore();
 
@@ -31,31 +30,44 @@ function Dashboard() {
           </div>
           <p className="text-xs text-gray-400 mt-2 font-mono">REAL-TIME INTELLIGENCE</p>
         </div>
-        <div className="p-4 border-b border-gray-800 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="p-4 border-b border-gray-800 flex gap-2 overflow-x-auto">
           {categories.map((cat) => {
             const Icon = cat.icon;
             const isActive = selectedCategory === cat.id;
             return (
-              <button key={cat.id || 'all'} onClick={() => setCategory(cat.id)}
+              <button
+                key={cat.id ?? 'all'}
+                onClick={() => setCategory(cat.id)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'
-                }`}>
-                <Icon size={14} />{cat.label}
+                }`}
+              >
+                <Icon size={14} />
+                {cat.label}
               </button>
             );
           })}
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {events.length === 0 ? (
-            <p className="text-center text-gray-500 mt-10 text-sm animate-pulse">Waiting for signal...</p>
+            <p className="text-center text-gray-500 mt-10 text-sm animate-pulse">
+              Waiting for signal...
+            </p>
           ) : (
             events.map((event) => (
-              <div key={event.id} onClick={() => setSelectedEvent(event.id)}
+              <div
+                key={event.id}
+                onClick={() => setSelectedEvent(event.id)}
                 className={`p-4 rounded-lg border transition-all cursor-pointer hover:bg-gray-800/80 ${
-                  selectedEventId === event.id ? 'border-red-500/50 bg-gray-800' : 'border-gray-800 bg-gray-900'
-                }`}>
+                  selectedEventId === event.id
+                    ? 'border-red-500/50 bg-gray-800'
+                    : 'border-gray-800 bg-gray-900'
+                }`}
+              >
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-mono text-gray-400 bg-gray-950 px-2 py-0.5 rounded">{event.category}</span>
+                  <span className="text-[10px] font-mono text-gray-400 bg-gray-950 px-2 py-0.5 rounded">
+                    {event.category}
+                  </span>
                   <span className={`text-xs font-bold ${event.riskScore > 75 ? 'text-red-500' : 'text-yellow-500'}`}>
                     RSK: {event.riskScore?.toFixed(1)}
                   </span>
@@ -74,13 +86,5 @@ function Dashboard() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function Page() {
-  return (
-    <QueryClientProvider client={qc}>
-      <Dashboard />
-    </QueryClientProvider>
   );
 }

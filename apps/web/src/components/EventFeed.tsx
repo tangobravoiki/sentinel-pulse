@@ -1,28 +1,32 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
+import { useLiveEvents } from '@/hooks/useLiveEvents';
 import { AlertTriangle, Plane, Shield, Zap } from 'lucide-react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   conflict: <AlertTriangle className="w-4 h-4 text-red-400" />,
+  NEWS:     <AlertTriangle className="w-4 h-4 text-red-400" />,
   aviation: <Plane className="w-4 h-4 text-yellow-400" />,
-  FLIGHT: <Plane className="w-4 h-4 text-yellow-400" />,
-  cyber: <Shield className="w-4 h-4 text-blue-400" />,
-  CYBER: <Shield className="w-4 h-4 text-blue-400" />,
+  FLIGHT:   <Plane className="w-4 h-4 text-yellow-400" />,
+  cyber:    <Shield className="w-4 h-4 text-blue-400" />,
+  CYBER:    <Shield className="w-4 h-4 text-blue-400" />,
   disaster: <Zap className="w-4 h-4 text-orange-400" />,
 };
 
 const categoryColors: Record<string, string> = {
   conflict: 'border-red-500/30 bg-red-500/5',
+  NEWS:     'border-red-500/30 bg-red-500/5',
   aviation: 'border-yellow-500/30 bg-yellow-500/5',
-  FLIGHT: 'border-yellow-500/30 bg-yellow-500/5',
-  cyber: 'border-blue-500/30 bg-blue-500/5',
-  CYBER: 'border-blue-500/30 bg-blue-500/5',
+  FLIGHT:   'border-yellow-500/30 bg-yellow-500/5',
+  cyber:    'border-blue-500/30 bg-blue-500/5',
+  CYBER:    'border-blue-500/30 bg-blue-500/5',
   disaster: 'border-orange-500/30 bg-orange-500/5',
 };
 
 export default function EventFeed() {
-  const { events, selectedEventId, setSelectedEvent } = useAppStore();
+  const { events } = useLiveEvents();
+  const { selectedEventId, setSelectedEvent } = useAppStore();
 
   const sorted = [...events].sort((a, b) => {
     const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
@@ -58,9 +62,7 @@ export default function EventFeed() {
                 )}
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-white truncate">
-                  {event.title}
-                </p>
+                <p className="text-xs font-medium text-white truncate">{event.title}</p>
                 <p className="text-xs text-white/50 mt-0.5 line-clamp-2">
                   {event.description ?? event.summary}
                 </p>
